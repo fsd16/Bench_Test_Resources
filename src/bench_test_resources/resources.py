@@ -181,13 +181,13 @@ class Scope(AgilentDSO):
         """
         return float(self.ask(f':MARKer:{axis}DELta?'))
 
-    def display_labels(self, status):
+    def display_labels(self, state):
         """Function to set the display state of the labels
 
         Args:
             status (str): The display state of the labels: {ON | OFF}
         """
-        self.write(f':DISPLAY:LABEL {status}')
+        self.write(f':DISPLAY:LABEL {state}')
 
     def set_trigger_mode(self, mode):
         """Function to set the trigger sweep mode
@@ -225,3 +225,42 @@ class Scope(AgilentDSO):
             type (str): The aquire type of the Scope: {NORMal | AVERage | HRESolution | PEAK}
         """
         self.write(f':ACQuire:TYPE {type}')
+
+    def get_statistic(self, statistics):
+        """Function to set the statistics returned by the scope
+
+        Args:
+            statistics (str): The statistics to be returned by the scope: {CURRent | MINimum | MAXimum | MEAN | STDDev | COUNt}
+        """
+        if statistics is 'ALL':
+            statistics = 'ON'
+        self.write(f':MEASure:STATistics {statistics}')
+        stats = self.ask(f':MEASure:RESults?')
+        return stats
+
+    def get_statistics(self, statistics):
+        self.write(f':MEASure:STATistics ON')
+        stats = self.ask(f':MEASure:RESults?')
+        return stats
+
+    def display_statistics(self, state):
+        """Function to set the display state of statisticson the scope
+
+        Args:
+            state (str): The display state of the statistics: {ON | OFF}
+        """
+        self.write(f':MEASure:STATistics:DISPlay {state}')
+
+    def set_statistics_count(self, count):
+        """Funtion to set the maxium number of values to use when calculating measurement statistics.
+
+        Args:
+            count (int): The max number of values to use when calculating measurement statistics
+        """
+        self.write(f':MEASure:STATistics:MCOunt {count}')
+
+    def reset_statistics(self):
+        """Function to reset the measurement statistics and zero count.
+        """
+        self.write(f':MEASure:STATistics:RESet')
+    
