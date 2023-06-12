@@ -1,10 +1,15 @@
 from enphase_ecdc.pcu import PCU
 from enphase_equipment.oscilloscope.agilent import AgilentDSO
-
+from time import sleep
 class PCU(PCU):
 
     def write_live_regs(self, datamodel_item, value):
+        """Function to write to the live registers
 
+        Args:
+            datamodel_item (str): The datamodel address to write to
+            value (any): the value to write to the register
+        """
         self.log.info(f'Writing {datamodel_item} -> {value}')
 
         try:
@@ -16,7 +21,14 @@ class PCU(PCU):
             self.log.info(f'The DatamodelItem "{datamodel_item}" does not exist')
 
     def read_live_regs(self, datamodel_item):
+        """Function to read from the live registers
 
+        Args:
+            datamodel_item (str): The datamodel address to read from
+
+        Returns:
+            any: The value of the register
+        """
         try:
             value = self.pcu.live_regs.search(datamodel_item).get_value()
             self.log.info(f'{datamodel_item} = {value}')
@@ -30,6 +42,12 @@ class PCU(PCU):
             return None
     
     def write_dmir(self, datamodel_item, value, area=0, bank=20):
+        """Function to write to the dmir
+
+        Args:
+            datamodel_item (str): The datamodel address to write to
+            value (any): the value to write to the dmir
+        """
         self.log.info(f'Writing {datamodel_item} -> {value}')
         top = datamodel_item.split('.')[0]
         try:
@@ -43,6 +61,14 @@ class PCU(PCU):
             self.log.info(f'The top level DatamodelItem "{top}" does not exist')
     
     def read_dmir(self, datamodel_item, area=0, bank=20):
+        """Function to read from the live registers
+
+        Args:
+            datamodel_item (str): The datamodel address to read from
+
+        Returns:
+            any: The value of the dmir
+        """
         self.log.info(f'Writing {datamodel_item} -> {value}')
         top = datamodel_item.split('.')[0]
         try:
@@ -58,6 +84,16 @@ class PCU(PCU):
         except AttributeError:
             self.log.info(f'The top level DatamodelItem "{top}" does not exist')
             return None
+    
+    def wait_for_power(self):
+        """Funciton to wait for for the PCU to begin to produce power
+        """
+        self.pcu.wait_for_boot()
+        state = self.pcu.read_live_regs('RTDB.RTDB.Flags.power_enabled')
+        while state == 0:
+            state = self.pcu.read_live_regs('RTDB.RTDB.Flags.power_enabled')
+            sleep(0.5)
+        self.log.info(f'PCU producing power') 
 
 class Scope(AgilentDSO):
 
@@ -103,27 +139,67 @@ class Scope(AgilentDSO):
         return float(self.ask(f':MEASure:{type}? CHANnel{channel}'))
     
     def set_marker_source(self, cursor, source):
+        """Function to set the marker source
+
+        Args:
+            cursor (int): The cursor number: {1 | 2}
+            source (int): The source channel number: {1 | 2 | 3 | 4}
+        """
         self.write(f':MARKer:X{cursor}Y{cursor}source CHANnel{source}')
 
     def set_marker_position(self, cursor, axis, position, unit='s'):
+        """Function to set the marker position
+
+        Args:
+            cursor (int): The cursor number: {1 | 2}
+            axis (_type_): The cursor axis to set {Y| X}
+            position (int): The position to set the cursor
+            unit (str, optional): The units of the position supplied: {s | ms | us | ns | ps | Hz | kHz | MHz} Defaults to 's'.
+        """
         self.write(f':MARKer:{axis}{cursor}Position {position} {unit}')
 
     def get_marker_postion(self, cursor, axis):
+        """Funtion to get the marker postion
+
+        Args:
+            cursor (int): The cursor number: {1 | 2}
+            axis (str): The cursor axis to get {Y| X}
+
+        Returns:
+            float: The marker postion recieved from the scope
+        """
         return float(self.ask(f':MARKer:{axis}{cursor}Position?'))
 
     def get_marker_delta(self, axis):
+        """Function get the delta between the cursors
+
+        Args:
+            axis (str): The cursor axis to get the delta along {Y| X}
+
+        Returns:
+            float: The cursor delta along the given axis received from the scope
+        """
         return float(self.ask(f':MARKer:{axis}DELta?'))
 
     def display_labels(self, status):
+        """Function to set the display state of the labels
+
+        Args:
+            status (str): The display state of the labels: {ON | OFF}
+        """
         self.write(f':DISPLAY:LABEL {status}')
 
     def set_trigger_mode(self, mode):
-        self.write(f':TRIGger:SWEep {mode}')
-    
-    def set_trigger_control(self, control):
-        self.write(f':{control}')
+        """Function to set the trigger sweep mode
 
-    def clear_trigger(self):
+        Args:
+            mode (str): The trigger sweep mode: {AUTO | NORMal}
+        """
+        self.write(f':TRIGger:SWEep {mode}')
+
+    def clear_status(self):
+        """Function to clear the status data structures
+        """
         self.write('*CLS')
     
     def get_triggered(self):
@@ -133,3 +209,19 @@ class Scope(AgilentDSO):
             bool: The trigger state of the scope i.e True, False
         """
         return bool(int(self.ask(":TER?")))
+    
+    def set_aquisition_mode(self, control):
+        """Function to set the aquisition mode.
+
+        Args:
+            control (str): the trigger control: {SINGle | RUN | STOP}
+        """
+        self.write(f':{control}')
+    
+    def set_aquisition_type(self, type):
+        """Function to set the aquire type of the scope
+
+        Args:
+            type (str): The aquire type of the Scope: {NORMal | AVERage | HRESolution | PEAK}
+        """
+        self.write(f':ACQuire:TYPE {type}')
