@@ -232,13 +232,11 @@ class Scope(AgilentDSO):
         Args:
             statistics (str): The statistics to be returned by the scope: {CURRent | MINimum | MAXimum | MEAN | STDDev | COUNt}
         """
-        if statistics is 'ALL':
-            statistics = 'ON'
         self.write(f':MEASure:STATistics {statistics}')
         stats = self.ask(f':MEASure:RESults?')
         return stats
 
-    def get_statistics(self, statistics):
+    def get_statistics(self):
         self.write(f':MEASure:STATistics ON')
         stats = self.ask(f':MEASure:RESults?')
         return stats
