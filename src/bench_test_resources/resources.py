@@ -227,19 +227,27 @@ class Scope(AgilentDSO):
         self.write(f':ACQuire:TYPE {type}')
 
     def get_statistic(self, statistics):
-        """Function to set the statistics returned by the scope
+        """Function to get a specific statistic from the scope
 
         Args:
-            statistics (str): The statistics to be returned by the scope: {CURRent | MINimum | MAXimum | MEAN | STDDev | COUNt}
+            statistics (str): The statistic to be returned by the scope: {CURRent | MINimum | MAXimum | MEAN | STDDev | COUNt}
+
+        Returns:
+            list: The statistic for each channel
         """
         self.write(f':MEASure:STATistics {statistics}')
         stats = self.ask(f':MEASure:RESults?')
-        return stats
+        return [float(stat) for stat in stats.split(',')]
 
     def get_statistics(self):
+        """Function to get all the statistics from the scope
+
+        Returns:
+            list: The statistics returned by the scope
+        """
         self.write(f':MEASure:STATistics ON')
         stats = self.ask(f':MEASure:RESults?')
-        return stats
+        return stats.split(',')
 
     def display_statistics(self, state):
         """Function to set the display state of statisticson the scope
@@ -261,4 +269,7 @@ class Scope(AgilentDSO):
         """Function to reset the measurement statistics and zero count.
         """
         self.write(f':MEASure:STATistics:RESet')
-    
+
+if __name__ == '__main__':
+    scope = Scope('USB0::2391::6052::MY51360258::INSTR')
+    print(scope.get_statistics())
