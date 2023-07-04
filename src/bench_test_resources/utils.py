@@ -26,3 +26,35 @@ def uniquify(filepath):
         counter += 1
 
     return filepath_P
+
+class InterpMulti:
+    def __init__(self, data, k=3, *args, **kwargs):
+        
+        """Class to extend Univariate Spline to handle multi curves. Given x, y curve data and a corresponding variable, v, a point can be interpolated at a chosen x point and v value.
+
+        Args:
+            curves (list): List of mapping objects containing array like objects of x, y, and varible data. e.g [{'x': x1_array, 'y': y1_array, 'v': v1}, {'x': x2_array, 'y': y2_array, 'v': v2}, ...]. Variable value must be increasing
+            k (int, optional): Degree of the smoothing spline. Must be 1 <= k <= 5. k = 3 is a cubic spline. Defaults to 3.
+        """
+        super().__init__(*args, **kwargs)
+        
+        self.curve_models = [UnivariateSpline(d['x'], d['y'], k=k) for d in data]
+        self.variables = array([d['v'][0] for d in data])
+
+    def get_point(self, x, v):
+        """Given the value x and the variable v, return the point y.
+
+        Args:
+            x (float): Point x to evaluate y at
+            v (float): Variable v to evaluate y for.
+
+        Returns:
+            float: Interpolated y value for a given x and v.
+        """
+        y_options = [curve_model(x)  for curve_model in self.curve_models]
+        
+        uS = UnivariateSpline(self.variables, y_options, k=2)
+        
+        y = uS(v)
+        
+        return float(y)
