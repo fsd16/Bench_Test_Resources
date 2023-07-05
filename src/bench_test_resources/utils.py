@@ -29,6 +29,26 @@ def uniquify(filepath):
 
     return filepath_P
 
+def dump(obj, nested_level=0):
+    spacing = '  '
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if hasattr(v, '__iter__'):
+                print(f'{(nested_level)*spacing}{k}:')
+                dump(v, nested_level + 1)
+            else:
+                print(f'{(nested_level)*spacing}{k}: {v}')
+    elif isinstance(obj, list):
+        print(f'{(nested_level)*spacing}[')
+        for v in obj:
+            if hasattr(v, '__iter__'):
+                dump(v, nested_level + 1)
+            else:
+                print(f'{(nested_level + 1)*spacing}{v}')
+        print(f'{(nested_level)*spacing}]')
+    else:
+        print(f'{(nested_level)*spacing}{obj}')
+
 class InterpMulti:
     def __init__(self, data, k=3, *args, **kwargs):
         
