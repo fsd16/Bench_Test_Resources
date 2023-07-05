@@ -1,5 +1,7 @@
 from typing import Dict, Any, TypeVar
 from pathlib import Path
+from scipy.interpolate import UnivariateSpline
+from numpy import array
 
 def dict_value_to_index(dict, value):
     return list(dict.values()).index(value)
