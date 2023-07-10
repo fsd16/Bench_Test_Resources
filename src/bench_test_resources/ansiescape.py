@@ -33,6 +33,8 @@ def clear(a=0):
     print(f'{ESC}{a}J', end='', flush=True)
 
 def clear_line():
+    """Function to clear the focused line from the cursor position to the end
+    """
     print(f'{ESC}K', end='', flush=True)
 
 def move_up(n=1):
@@ -144,12 +146,18 @@ colours = {'bl': 0,
            37: 7}    
 
 def set_text_colour(c):
-    """ Function to set the text colour
+    """Function to set the text colour
+
+    Args:
+        c (int | str): The colour code, either int or string. i.e Black := {'bl' | 'black' | 30 | 40 }
     """
     print(f'{ESC}{30+colours[c]}m', end='', flush=True)
     
 def set_background_colour(c):
-    """ Function to set the background colour
+    """Function to set the background colour
+
+    Args:
+        c (int | str): The colour code, either int or string. i.e Black := {'bl' | 'black' | 30 | 40 }
     """
     print(f'{ESC}{40+colours[c]}m', end='', flush=True)
     
